@@ -28,7 +28,7 @@ def parse_letters(letters_str):
     """Parse letter string like 'a,b,c' into set."""
     if not letters_str:
         return set()
-    return set(letter.lower() for letter in letters_str.split(','))
+    return set(letter.lower().strip() for letter in letters_str.split(',') if letter.strip())
 
 
 def parse_wrong_positions(wrong_positions_str):
