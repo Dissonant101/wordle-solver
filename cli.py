@@ -67,6 +67,8 @@ def main():
                        help='Show statistics about the word list')
     parser.add_argument('--interactive', action='store_true',
                        help='Run in interactive mode')
+    parser.add_argument('--frequency-scoring', action='store_true',
+                       help='Use letter frequency scoring instead of elimination scoring')
     
     args = parser.parse_args()
     
@@ -92,21 +94,26 @@ def main():
     wrong_positions = parse_wrong_positions(args.wrong_positions)
     
     # Solve
+    use_elimination = not args.frequency_scoring
     if args.best_only:
-        best_guess = solver.get_best_guess(correct_positions, correct_letters, 
-                                         incorrect_letters, wrong_positions)
-        if best_guess:
-            print(f"Best guess: {best_guess.upper()}")
+        results = solver.solve(correct_positions, correct_letters, incorrect_letters, 
+                             wrong_positions, max_results=1, use_elimination_scoring=use_elimination)
+        if results:
+            print(f"Best guess: {results[0][0].upper()}")
         else:
             print("No valid words found with given constraints.")
     else:
         results = solver.solve(correct_positions, correct_letters, incorrect_letters, 
-                             wrong_positions, args.max_results)
+                             wrong_positions, args.max_results, use_elimination_scoring=use_elimination)
         
         if results:
-            print(f"Top {len(results)} possibilities:")
-            for i, (word, probability) in enumerate(results, 1):
-                print(f"{i:2d}. {word.upper()} (score: {probability:.6f})")
+            score_type = "elimination score" if use_elimination else "frequency score"
+            print(f"Top {len(results)} possibilities (ranked by {score_type}):")
+            for i, (word, score) in enumerate(results, 1):
+                if use_elimination:
+                    print(f"{i:2d}. {word.upper()} (eliminates {score:.1f} words)")
+                else:
+                    print(f"{i:2d}. {word.upper()} (score: {score:.2e})")
         else:
             print("No valid words found with given constraints.")
 
@@ -139,12 +146,12 @@ def run_interactive(solver):
         
         # Solve
         results = solver.solve(correct_positions, correct_letters, incorrect_letters, 
-                             wrong_positions, max_results=10)
+                             wrong_positions, max_results=10, use_elimination_scoring=True)
         
         if results:
-            print(f"\nTop {len(results)} possibilities:")
-            for i, (word, probability) in enumerate(results, 1):
-                print(f"{i:2d}. {word.upper()} (score: {probability:.6f})")
+            print(f"\nTop {len(results)} possibilities (ranked by elimination score):")
+            for i, (word, score) in enumerate(results, 1):
+                print(f"{i:2d}. {word.upper()} (eliminates {score:.1f} words)")
         else:
             print("No valid words found with given constraints.")
         

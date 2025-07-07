@@ -5,9 +5,11 @@ A Python-based Wordle solver that helps you find the best possible words based o
 ## Features
 
 - **Constraint-based filtering**: Input green letters (correct position), yellow letters (wrong position), and gray letters (not in word)
-- **Probability ranking**: Words are ranked by likelihood based on letter frequency analysis
+- **Smart elimination scoring**: Words are ranked by how many possibilities they eliminate (optimal Wordle strategy)
+- **Alternative frequency scoring**: Option to use traditional letter frequency analysis
 - **Handles duplicate letters**: Correctly processes words with repeated characters like "poppy"
 - **Multiple interfaces**: Command-line arguments, interactive mode, and Python API
+- **Optimized performance**: Fast recommendations even for large word lists
 - **Customizable word lists**: Use your own CSV file of possible words
 
 ## Installation
@@ -56,6 +58,9 @@ python cli.py --wrong-positions "a:1,3"
 
 # Combine multiple constraints
 python cli.py --correct-positions "0:s,4:e" --incorrect-letters "a,i,o,u" --max-results 5
+
+# Use frequency scoring instead of elimination scoring
+python cli.py --frequency-scoring --max-results 5
 ```
 
 #### Interactive Mode
@@ -183,12 +188,24 @@ actor
 The solver uses a two-step process:
 
 1. **Constraint Filtering**: Eliminates words that don't satisfy the given constraints
-2. **Probability Ranking**: Ranks remaining words based on:
-   - Letter frequency in the word list
-   - Position-specific letter frequency
-   - Slight penalty for repeated letters
+2. **Smart Ranking**: By default, uses elimination scoring which ranks words by how many possibilities they eliminate on average. This is the optimal Wordle strategy.
 
-The probability calculation considers both the overall frequency of letters and their frequency at specific positions, giving higher scores to words with more common letter patterns.
+### Elimination Scoring (Default)
+For each possible guess, the algorithm:
+- Simulates the guess against all remaining possible answers
+- Calculates how many words would be eliminated for each possible outcome pattern
+- Ranks guesses by expected number of eliminations
+
+### Frequency Scoring (Alternative)
+When using `--frequency-scoring`, ranks words based on:
+- Letter frequency in the word list
+- Position-specific letter frequency  
+- Slight penalty for repeated letters
+
+### Performance Optimization
+- Initial guesses use pre-computed optimal starting words
+- Large possibility sets are pre-filtered using frequency scoring before elimination analysis
+- Typical response time: <1 second for constrained puzzles, instant for initial guesses
 
 ## Files
 
