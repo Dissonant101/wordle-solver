@@ -27,8 +27,8 @@ def parse_positions(positions_str):
 def parse_letters(letters_str):
     """Parse letter string like 'a,b,c' into set."""
     if not letters_str:
-        return set()
-    return set(letter.lower().strip() for letter in letters_str.split(',') if letter.strip())
+        return []
+    return [letter.lower().strip() for letter in letters_str.split(',') if letter.strip()]
 
 
 def parse_wrong_positions(wrong_positions_str):
@@ -134,12 +134,12 @@ def run_interactive(solver):
         
         # Get correct letters in wrong positions (yellow letters)
         correct_letters_input = input("Correct letters in wrong positions (yellow, format: a,b,c): ").strip()
-        correct_letters = parse_letters(correct_letters_input) if correct_letters_input else set()
+        correct_letters = parse_letters(correct_letters_input) if correct_letters_input else []
         
         # Get incorrect letters (gray letters)
         incorrect_letters_input = input("Incorrect letters (gray, format: x,y,z): ").strip()
-        incorrect_letters = parse_letters(incorrect_letters_input) if incorrect_letters_input else set()
-        
+        incorrect_letters = parse_letters(incorrect_letters_input) if incorrect_letters_input else []
+
         # Get wrong positions for yellow letters
         wrong_pos_input = input("Wrong positions for yellow letters (format: a:1,3;b:0,2): ").strip()
         wrong_positions = parse_wrong_positions(wrong_pos_input) if wrong_pos_input else {}
