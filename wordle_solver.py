@@ -303,21 +303,26 @@ class WordleSolver:
         """
         # Pre-computed good starting words (these eliminate the most words on average)
         starting_words = [
-            ('raise', 168.5),
-            ('roate', 167.8),
-            ('arose', 167.2),
-            ('irate', 166.9),
-            ('stare', 166.1),
-            ('slate', 165.8),
-            ('trace', 165.5),
-            ('crate', 165.2),
-            ('adore', 164.8),
-            ('audio', 164.5),
-            ('snare', 164.2),
-            ('crane', 163.9),
-            ('share', 163.6),
-            ('tales', 163.3),
-            ('rates', 163.0)
+            ('lares', 14512.1),
+            ('rales', 14512.1),
+            ('nares', 14503.9),
+            ('ranes', 14503.7),
+            ('reais', 14498.8),
+            ('soare', 14498.8),
+            ('tares', 14475.7),
+            ('aeros', 14491.9),
+            ('serai', 14490.2),
+            ('rates', 14489.3),
+            ('seria', 144887.8),
+            ('saner', 14486.8),
+            ('arles', 14476.9),
+            ('sater', 14475.7),
+            ('lanes', 14470.3),
+            ('raise', 14467.5),
+            ('tales', 14466.2),
+            ('aloes', 14464.7),
+            ('saine', 14464.0),
+            ('reals', 14464.0)
         ]
 
         # Filter to only include words that are in our word list
