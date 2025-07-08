@@ -271,9 +271,9 @@ class WordleSolver:
                 use_elimination_scoring and len(possible_words) == len(self.words)):
             return self._get_best_starting_words(max_results)
 
-        # For large word lists (>50), optimize by using frequency scoring to pre-filter
+        # For large word lists (>1000), optimize by using frequency scoring to pre-filter
         candidates = possible_words
-        if use_elimination_scoring and len(possible_words) > 50:
+        if use_elimination_scoring and len(possible_words) > 1000:
             # First, use frequency scoring to get top candidates
             freq_scores = [(word, self.calculate_word_probability(word))
                            for word in possible_words]
