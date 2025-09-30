@@ -1,8 +1,6 @@
 import csv
-import re
 from collections import Counter, defaultdict
 from typing import List, Dict, Set, Tuple
-import string
 
 
 class WordleSolver:
@@ -21,7 +19,7 @@ class WordleSolver:
         """Load words from CSV file."""
         words = []
         try:
-            with open(words_file, 'r', newline='', encoding='utf-8') as file:
+            with open(words_file, "r", newline="", encoding="utf-8") as file:
                 reader = csv.reader(file)
                 for row in reader:
                     if row:  # Skip empty rows
@@ -58,17 +56,18 @@ class WordleSolver:
         for pos in range(5):
             total = sum(position_counts[pos].values())
             position_frequencies[pos] = {
-                letter: count / total
-                for letter, count in position_counts[pos].items()
+                letter: count / total for letter, count in position_counts[pos].items()
             }
 
         return position_frequencies
 
-    def filter_words(self,
-                     correct_positions: Dict[int, str] = None,
-                     correct_letters: List[str] = None,
-                     incorrect_letters: List[str] = None,
-                     wrong_positions: Dict[str, Set[int]] = None) -> List[str]:
+    def filter_words(
+        self,
+        correct_positions: Dict[int, str] | None = None,
+        correct_letters: List[str] | None = None,
+        incorrect_letters: List[str] | None = None,
+        wrong_positions: Dict[str, Set[int]] | None = None,
+    ) -> List[str]:
         """
         Filter words based on Wordle constraints.
 
@@ -94,17 +93,25 @@ class WordleSolver:
         filtered_words = []
 
         for word in self.words:
-            if self._satisfies_constraints(word, correct_positions, correct_letters,
-                                           incorrect_letters, wrong_positions):
+            if self._satisfies_constraints(
+                word,
+                correct_positions,
+                correct_letters,
+                incorrect_letters,
+                wrong_positions,
+            ):
                 filtered_words.append(word)
 
         return filtered_words
 
-    def _satisfies_constraints(self, word: str,
-                               correct_positions: Dict[int, str],
-                               correct_letters: List[str],
-                               incorrect_letters: List[str],
-                               wrong_positions: Dict[str, Set[int]]) -> bool:
+    def _satisfies_constraints(
+        self,
+        word: str,
+        correct_positions: Dict[int, str],
+        correct_letters: List[str],
+        incorrect_letters: List[str],
+        wrong_positions: Dict[str, Set[int]],
+    ) -> bool:
         """Check if a word satisfies all given constraints."""
 
         # Check correct positions (green letters)
@@ -120,7 +127,12 @@ class WordleSolver:
 
         # Check incorrect letters (gray letters)
         for letter in incorrect_letters:
-            if letter in word and letter not in correct_letters and letter not in wrong_positions and letter not in correct_positions.values():
+            if (
+                letter in word
+                and letter not in correct_letters
+                and letter not in wrong_positions
+                and letter not in correct_positions.values()
+            ):
                 return False
 
         # Check wrong positions (yellow letters)
@@ -134,9 +146,17 @@ class WordleSolver:
         # Additional constraint: ensure we have the right count of each letter
         # This handles cases where a letter appears multiple times
         for letter, count in word_letter_count.items():
-            if count < sum(1 for val in correct_positions.values() if val == letter) + correct_letters.count(letter):
+            if count < sum(
+                1 for val in correct_positions.values() if val == letter
+            ) + correct_letters.count(letter):
                 return False
-            if letter in incorrect_letters and count >= incorrect_letters.count(letter) + sum(1 for val in correct_positions.values() if val == letter) + correct_letters.count(letter):
+            if letter in incorrect_letters and count >= incorrect_letters.count(
+                letter
+            ) + sum(
+                1 for val in correct_positions.values() if val == letter
+            ) + correct_letters.count(
+                letter
+            ):
                 return False
 
         return True
@@ -160,14 +180,17 @@ class WordleSolver:
         for letter, count in letter_count.items():
             if letter in self.letter_frequencies:
                 # Penalize repeated letters slightly
-                score *= (self.letter_frequencies[letter]
-                          ** count) * (0.9 ** (count - 1))
+                score *= (self.letter_frequencies[letter] ** count) * (
+                    0.9 ** (count - 1)
+                )
             else:
                 score *= 0.001
 
         return score
 
-    def calculate_elimination_score(self, word: str, possible_words: List[str]) -> float:
+    def calculate_elimination_score(
+        self, word: str, possible_words: List[str]
+    ) -> float:
         """
         Calculate how many words this guess would eliminate on average.
         Higher score means better guess for narrowing down possibilities.
@@ -216,34 +239,36 @@ class WordleSolver:
         Returns:
             List of patterns: 'green', 'yellow', or 'gray' for each position
         """
-        pattern = ['gray'] * 5
-        answer_chars = list(answer)
-        guess_chars = list(guess)
+        pattern = ["gray"] * 5
+        answer_chars: List[str | None] = list(answer)
+        guess_chars: List[str | None] = list(guess)
 
         # First pass: mark green (correct position)
         for i in range(5):
             if guess_chars[i] == answer_chars[i]:
-                pattern[i] = 'green'
+                pattern[i] = "green"
                 answer_chars[i] = None  # Remove from available chars
-                guess_chars[i] = None   # Mark as processed
+                guess_chars[i] = None  # Mark as processed
 
         # Second pass: mark yellow (wrong position)
         for i in range(5):
             if guess_chars[i] is not None:  # Not already marked green
                 if guess_chars[i] in answer_chars:
-                    pattern[i] = 'yellow'
+                    pattern[i] = "yellow"
                     # Remove first occurrence from answer_chars
                     answer_chars[answer_chars.index(guess_chars[i])] = None
 
         return pattern
 
-    def solve(self,
-              correct_positions: Dict[int, str] = None,
-              correct_letters: List[str] = None,
-              incorrect_letters: List[str] = None,
-              wrong_positions: Dict[str, Set[int]] = None,
-              max_results: int = 20,
-              use_elimination_scoring: bool = True) -> List[Tuple[str, float]]:
+    def solve(
+        self,
+        correct_positions: Dict[int, str] | None = None,
+        correct_letters: List[str] | None = None,
+        incorrect_letters: List[str] | None = None,
+        wrong_positions: Dict[str, Set[int]] | None = None,
+        max_results: int = 20,
+        use_elimination_scoring: bool = True,
+    ) -> List[Tuple[str, float]]:
         """
         Solve Wordle puzzle given constraints and return ranked list of possibilities.
 
@@ -259,28 +284,34 @@ class WordleSolver:
             List of tuples (word, elimination_score) sorted by score (highest first)
         """
         # Filter words based on constraints
-        possible_words = self.filter_words(correct_positions, correct_letters,
-                                           incorrect_letters, wrong_positions)
+        possible_words = self.filter_words(
+            correct_positions, correct_letters, incorrect_letters, wrong_positions
+        )
 
         if not possible_words:
             return []
 
         # For initial guess (no constraints), use pre-computed good starting words
-        if (not correct_positions and not correct_letters and
-            not incorrect_letters and not wrong_positions and
-                use_elimination_scoring and len(possible_words) == len(self.words)):
+        if (
+            not correct_positions
+            and not correct_letters
+            and not incorrect_letters
+            and not wrong_positions
+            and use_elimination_scoring
+            and len(possible_words) == len(self.words)
+        ):
             return self._get_best_starting_words(max_results)
 
         # For large word lists (>1000), optimize by using frequency scoring to pre-filter
         candidates = possible_words
         if use_elimination_scoring and len(possible_words) > 1000:
             # First, use frequency scoring to get top candidates
-            freq_scores = [(word, self.calculate_word_probability(word))
-                           for word in possible_words]
+            freq_scores = [
+                (word, self.calculate_word_probability(word)) for word in possible_words
+            ]
             freq_scores.sort(key=lambda x: x[1], reverse=True)
             # Take top 30 for elimination scoring
-            candidates = [word for word,
-                          _ in freq_scores[:min(30, len(freq_scores))]]
+            candidates = [word for word, _ in freq_scores[: min(30, len(freq_scores))]]
 
         # Calculate scores for candidate words
         word_scores = []
@@ -303,55 +334,69 @@ class WordleSolver:
         """
         # Pre-computed good starting words (these eliminate the most words on average)
         starting_words = [
-            ('lares', 14512.1),
-            ('rales', 14512.1),
-            ('nares', 14503.9),
-            ('ranes', 14503.7),
-            ('reais', 14498.8),
-            ('soare', 14498.8),
-            ('tares', 14475.7),
-            ('aeros', 14491.9),
-            ('serai', 14490.2),
-            ('rates', 14489.3),
-            ('seria', 144887.8),
-            ('saner', 14486.8),
-            ('arles', 14476.9),
-            ('sater', 14475.7),
-            ('lanes', 14470.3),
-            ('raise', 14467.5),
-            ('tales', 14466.2),
-            ('aloes', 14464.7),
-            ('saine', 14464.0),
-            ('reals', 14464.0)
+            ("lares", 14512.1),
+            ("rales", 14512.1),
+            ("nares", 14503.9),
+            ("ranes", 14503.7),
+            ("reais", 14498.8),
+            ("soare", 14498.8),
+            ("tares", 14475.7),
+            ("aeros", 14491.9),
+            ("serai", 14490.2),
+            ("rates", 14489.3),
+            ("seria", 144887.8),
+            ("saner", 14486.8),
+            ("arles", 14476.9),
+            ("sater", 14475.7),
+            ("lanes", 14470.3),
+            ("raise", 14467.5),
+            ("tales", 14466.2),
+            ("aloes", 14464.7),
+            ("saine", 14464.0),
+            ("reals", 14464.0),
         ]
 
         # Filter to only include words that are in our word list
-        available_words = [(word, score)
-                           for word, score in starting_words if word in self.words]
+        available_words = [
+            (word, score) for word, score in starting_words if word in self.words
+        ]
 
         # If we don't have any pre-computed words, fall back to frequency scoring
         if not available_words:
-            word_scores = [(word, self.calculate_word_probability(word))
-                           for word in self.words[:50]]
+            word_scores = [
+                (word, self.calculate_word_probability(word))
+                for word in self.words[:50]
+            ]
             word_scores.sort(key=lambda x: x[1], reverse=True)
             available_words = word_scores
 
         return available_words[:max_results]
 
-    def get_best_guess(self,
-                       correct_positions: Dict[int, str] = None,
-                       correct_letters: List[str] = None,
-                       incorrect_letters: List[str] = None,
-                       wrong_positions: Dict[str, Set[int]] = None) -> str:
+    def get_best_guess(
+        self,
+        correct_positions: Dict[int, str] | None = None,
+        correct_letters: List[str] | None = None,
+        incorrect_letters: List[str] | None = None,
+        wrong_positions: Dict[str, Set[int]] | None = None,
+    ) -> str | None:
         """Get the single best guess based on current constraints."""
-        results = self.solve(correct_positions, correct_letters, incorrect_letters,
-                             wrong_positions, max_results=1)
+        results = self.solve(
+            correct_positions,
+            correct_letters,
+            incorrect_letters,
+            wrong_positions,
+            max_results=1,
+        )
         return results[0][0] if results else None
 
-    def get_stats(self) -> Dict[str, int]:
+    def get_stats(self) -> Dict[str, int | float]:
         """Get statistics about the loaded word list."""
         return {
             "total_words": len(self.words),
-            "unique_letters": len(set(''.join(self.words))),
-            "avg_word_length": sum(len(word) for word in self.words) / len(self.words) if self.words else 0
+            "unique_letters": len(set("".join(self.words))),
+            "avg_word_length": (
+                sum(len(word) for word in self.words) / len(self.words)
+                if self.words
+                else 0
+            ),
         }
